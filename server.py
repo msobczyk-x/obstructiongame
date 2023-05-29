@@ -53,52 +53,64 @@ def check_winner(current_player):
         
 winner = None
 running = True
+
+    
 while running:
-    if client1 and client2:
-        if winner is not None:
-            if winner == 0:
+    try:
+        if client1 and client2:
+            if winner is not None:
+                if winner == 0:
                     print("Tie!")
-            elif winner == 1:
+                elif winner == 1:
                     client1.send("You win!".encode())
+                    
                     client2.send("You lose!".encode())
-            else:
+                    running = False
+                elif winner == 2:
                     client2.send("You win!".encode())
                     client1.send("You lose!".encode())
-        
-        if current_player == client1:
-            client1.send("Your turn".encode())
-            client2.send("Opponent's turn".encode())
-        else:
-            client2.send("Your turn".encode())
-            client1.send("Opponent's turn".encode())
+                    running = False
+            if current_player == client1:
+                client1.send("Your turn".encode())
+                client2.send("Opponent's turn".encode())
+            else:
+                client2.send("Your turn".encode())
+                client1.send("Opponent's turn".encode())
         # Receive the move from the current player
-        move = current_player.recv(1024).decode()
-        row,col = move.split(",")
-        if client1 == current_player:
-            player_move(int(row), int(col), 1)
-        else:
-            player_move(int(row), int(col), 2)
+            move = current_player.recv(1024).decode()
+            row,col = move.split(",")
+            if client1 == current_player:
+                player_move(int(row), int(col), 1)
+            else:
+                player_move(int(row), int(col), 2)
         # Send the move to the other player
-        if current_player == client1:
-            client2.send("Board".encode())
-            time.sleep(0.1)
-            client2.send(str(board).encode())
-            time.sleep(0.1)
-        else:
-            client1.send("Board".encode())
-            time.sleep(0.1)
-            client1.send(str(board).encode())
-            time.sleep(0.1)
-            winner = check_winner(current_player)
+            if current_player == client1:
+                client2.send("Board".encode())
+                time.sleep(0.1)
+                client2.send(str(board).encode())
+                time.sleep(0.1)
+                winner = check_winner(current_player)
+            else:
+                client1.send("Board".encode())
+                time.sleep(0.1)
+                client1.send(str(board).encode())
+                time.sleep(0.1)
+                winner = check_winner(current_player)
    
             
         # Switch the current player
-        if current_player == client1:
-            current_player = client2
-        else:
-            current_player = client1
-
+            if current_player == client1:
+                current_player = client2
+            else:
+                current_player = client1
+    except ConnectionResetError:
+        
+        print("A player left.")
+        print("Closing the server...")
+        break
 # Close the connections
+print("Game over.")
+print("Closing connections...")
 client1.close()
 client2.close()
 server_socket.close()
