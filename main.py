@@ -8,7 +8,11 @@ pygame.init()
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 HOST = 'localhost'
 PORT = 1337
-s.connect((HOST, PORT))
+try:
+    s.connect((HOST, PORT))
+except:
+    print("Connection error")
+    exit()
 # Set up the game window
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 640
@@ -111,6 +115,9 @@ def receive_msg():
                 print("You lose!")
                 s.close()
                 break
+            if msg == "":
+                s.close()
+                break
             
         except Exception as e:
             print(e)
@@ -142,7 +149,12 @@ while running:
         pygame.display.set_caption("Obstruction - Your turn")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                
                 running = False
+                break
+            elif event.type == pygame.K_q: 
+                running = False
+                break
             elif event.type == pygame.MOUSEBUTTONUP and player_turn:
             # Get the row and column of the clicked cell
                 row = event.pos[1] // CELL_SIZE
@@ -183,4 +195,5 @@ while running:
     pygame.display.update()
 
 # Quit Pygame
+receiving_thread.join()
 pygame.quit()
